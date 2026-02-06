@@ -24,11 +24,11 @@ spec:
     spec:
       containers:
       - name: migration-calculator
-        image: vmw-migration-calc:latest
-        imagePullPolicy: IfNotPresent
+        image: jowings/vmw-migration-calc:latest
+        imagePullPolicy: Always
         ports:
         - name: http
-          containerPort: 80
+          containerPort: 8080
           protocol: TCP
         livenessProbe:
           httpGet:

@@ -10,12 +10,12 @@ RUN rm -rf /etc/nginx/conf.d/default.conf /usr/share/nginx/html/*
 # Copy the migration calculator HTML file
 COPY migration-calculator.html /usr/share/nginx/html/index.html
 
-# Create a custom nginx configuration for better performance and security
+# Create a custom nginx configuration for better performance and security on port 8080
 RUN echo 'server { \
-    listen 80; \
+    listen 8080; \
     server_name _; \
     gzip on; \
-    gzip_types text/html text/css application/javascript; \
+    gzip_types text/css application/javascript; \
     \
     # Security headers \
     add_header X-Frame-Options "SAMEORIGIN" always; \
@@ -35,8 +35,18 @@ RUN echo 'server { \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
-# Expose port 80
-EXPOSE 80
+# Set proper permissions for nginx user (uid 101 in alpine)
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chown -R nginx:nginx /etc/nginx/conf.d && \
+    touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/cache/nginx
+
+# Switch to nginx user
+USER nginx
+
+# Expose port 8080 (non-privileged port)
+EXPOSE 8080
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
