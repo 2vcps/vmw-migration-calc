@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VMware to OpenShift Migration Calculator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f3f4f6;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 32px;
+      border-radius: 12px;
+      color: white;
+      margin-bottom: 32px;
+      position: relative;
+    }
+    .header h1 {
+      margin: 0 0 8px 0;
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .header p {
+      margin: 0;
+      font-size: 18px;
+      opacity: 0.95;
+    }
+    .pdf-button {
+      position: absolute;
+      top: 32px;
+      right: 32px;
+      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid white;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pdf-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .pdf-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 24px;
+    }
+    .card h2 {
+      margin: 0 0 20px 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    .input-group {
+      margin-bottom: 16px;
+    }
+    .input-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .input-group small {
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    thead tr {
+      background: #f9fafb;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      font-weight: 600;
+      color: #374151;
+    }
+    tbody tr {
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .tech-name {
+      font-weight: 600;
+      color: #1f2937;
+    }
+    .tech-desc {
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .highlight {
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .summary-card {
+      background: #f9fafb;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+    .summary-card.best {
+      background: #ecfdf5;
+      border: 2px solid #10b981;
+    }
+    .summary-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 8px;
+    }
+    .summary-value {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .summary-detail {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    .savings {
+      font-size: 13px;
+      font-weight: 600;
+      color: #10b981;
+      margin-top: 8px;
+    }
+    .bottom-line {
+      padding: 16px;
+      background: #eff6ff;
+      border-radius: 8px;
+      border: 1px solid #bfdbfe;
+    }
+    .bottom-line-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1e40af;
+      margin-bottom: 8px;
+    }
+    .bottom-line-text {
+      font-size: 13px;
+      color: #1e40af;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="reportContent">
+    <div class="header">
+      <h1>VMware to OpenShift Virtualization</h1>
+      <p>How Much Faster Can You Migrate with Better Transfer Technology?</p>
+      <button class="pdf-button" id="pdfButton" onclick="exportToPDF()">📄 Export to PDF</button>
+    </div>
+
+    <div class="input-grid">
+      <div class="card">
+        <h2>📊 Project Configuration</h2>
+        <div class="input-group">
+          <label>Total VMs to Migrate</label>
+          <input type="number" id="totalVMs" value="125000" onchange="calculate()" autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label>Available Concurrent Streams</label>
+          <input type="number" id="fixedConcurrency" value="50" onchange="calculate()" autocomplete="off">
+          <small>Number of parallel migrations you can run</small>
+        </div>
+        <div class="input-group">
+          <label>Weeks per Year</label>
+          <input type="number" id="weeksPerYear" value="52" onchange="calculate()" autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label>Migration Windows per Week</label>
+          <input type="number" id="windowsPerWeek" value="1" onchange="calculate()" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>⏰ Window Configuration</h2>
+        <div class="input-group">
+          <label>Window Duration (hours)</label>
+          <input type="number" id="windowHours" value="20" onchange="calculate()" autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label>Overhead per Window (hours)</label>
+          <input type="number" step="0.5" id="overheadHours" value="0" onchange="calculate()" autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label>Efficiency Factor (0-1)</label>
+          <input type="number" step="0.05" min="0" max="1" id="efficiencyFactor" value="1.0" onchange="calculate()" autocomplete="off">
+          <small>0.90 = 10% loss to retries/pauses</small>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>💾 Per-VM Data Model</h2>
+        <div class="input-group">
+          <label>Average Data per VM (GB)</label>
+          <input type="number" id="avgDataPerVM" value="500" onchange="calculate()" autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label>Per-VM Overhead (minutes)</label>
+          <input type="number" id="perVMOverhead" value="5" onchange="calculate()" autocomplete="off">
+          <small>Quiesce, cutover, validation time</small>
+        </div>
+        <div style="background: #f3f4f6; padding: 16px; border-radius: 6px; margin-top: 20px;">
+          <div style="font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">Transfer Technologies:</div>
+          <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;"><strong>Network Copy:</strong> 100 MB/s</div>
+          <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;"><strong>XCopy (Array):</strong> 500 MB/s</div>
+          <div style="font-size: 12px; color: #6b7280;"><strong>VolCopy (FlashArray):</strong> 2000 MB/s</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="card">
+        <h2>⏱️ Completion Time by Technology</h2>
+        <div class="chart-container">
+          <canvas id="timeChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <h2>🚀 Weekly Throughput Comparison</h2>
+        <div class="chart-container">
+          <canvas id="throughputChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 32px;">
+      <h2>📈 Detailed Completion Time Comparison</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Technology</th>
+            <th style="text-align: right;">Speed</th>
+            <th style="text-align: right;">Time/VM</th>
+            <th style="text-align: right;">VMs/Hr/Stream</th>
+            <th style="text-align: right;">VMs/Week</th>
+            <th style="text-align: right;">Weeks</th>
+            <th style="text-align: right;">Months</th>
+          </tr>
+        </thead>
+        <tbody id="resultsTable">
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>💡 Value Proposition: Time Savings</h2>
+      <div class="summary-grid" id="summaryCards"></div>
+      <div class="bottom-line">
+        <div class="bottom-line-title">🎯 Bottom Line</div>
+        <div class="bottom-line-text" id="bottomLineText"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const technologies = [
+      { name: 'Network Copy', speedMBps: 100, description: 'Standard network transfer over 1Gbps link', color: '#8b5cf6' },
+      { name: 'XCopy (Array)', speedMBps: 500, description: 'Storage array-based XCopy offload', color: '#ec4899' },
+      { name: 'VolCopy (FlashArray)', speedMBps: 2000, description: 'Direct FlashArray volume copy with optimized path', color: '#10b981' }
+    ];
+
+    let timeChart, throughputChart;
+
+    function calculate() {
+      const totalVMs = Number(document.getElementById('totalVMs').value);
+      const fixedConcurrency = Number(document.getElementById('fixedConcurrency').value);
+      const weeksPerYear = Number(document.getElementById('weeksPerYear').value);
+      const windowsPerWeek = Number(document.getElementById('windowsPerWeek').value);
+      const windowHours = Number(document.getElementById('windowHours').value);
+      const overheadHours = Number(document.getElementById('overheadHours').value);
+      const efficiencyFactor = Number(document.getElementById('efficiencyFactor').value);
+      const avgDataPerVM = Number(document.getElementById('avgDataPerVM').value);
+      const perVMOverhead = Number(document.getElementById('perVMOverhead').value);
+
+      const effectiveHoursPerWindow = Math.max(0, windowHours - overheadHours);
+
+      const results = technologies.map(tech => {
+        const transferTimeMinutes = (avgDataPerVM * 1024) / (tech.speedMBps * 60);
+        const totalTimePerVM = transferTimeMinutes + perVMOverhead;
+        const vmsPerHourPerStream = 60 / totalTimePerVM;
+        
+        const vmsPerWindow = effectiveHoursPerWindow * vmsPerHourPerStream * fixedConcurrency * efficiencyFactor;
+        const vmsPerWeek = vmsPerWindow * windowsPerWeek;
+        
+        const weeksNeeded = totalVMs / vmsPerWeek;
+        const monthsNeeded = weeksNeeded / 4.345;
+        
+        return {
+          name: tech.name,
+          description: tech.description,
+          speedMBps: tech.speedMBps,
+          color: tech.color,
+          totalTimePerVM: Math.round(totalTimePerVM * 10) / 10,
+          vmsPerHourPerStream: Math.round(vmsPerHourPerStream * 100) / 100,
+          vmsPerWeek: Math.round(vmsPerWeek),
+          weeksNeeded: Math.round(weeksNeeded * 10) / 10,
+          monthsNeeded: Math.round(monthsNeeded * 10) / 10,
+        };
+      });
+
+      updateCharts(results);
+      updateTable(results);
+      updateSummary(results, fixedConcurrency);
+    }
+
+    function updateCharts(results) {
+      const labels = results.map(r => r.name);
+      const months = results.map(r => r.monthsNeeded);
+      const vmsPerWeek = results.map(r => r.vmsPerWeek);
+      const colors = results.map(r => r.color);
+
+      if (timeChart) timeChart.destroy();
+      if (throughputChart) throughputChart.destroy();
+
+      const ctx1 = document.getElementById('timeChart').getContext('2d');
+      timeChart = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Months to Complete',
+            data: months,
+            backgroundColor: colors
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: 'Months' }
+            }
+          }
+        }
+      });
+
+      const ctx2 = document.getElementById('throughputChart').getContext('2d');
+      throughputChart = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'VMs per Week',
+            data: vmsPerWeek,
+            backgroundColor: colors
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: 'VMs/Week' }
+            }
+          }
+        }
+      });
+    }
+
+    function updateTable(results) {
+      const tbody = document.getElementById('resultsTable');
+      tbody.innerHTML = results.map(r => `
+        <tr>
+          <td>
+            <div class="tech-name">${r.name}</div>
+            <div class="tech-desc">${r.description}</div>
+          </td>
+          <td style="text-align: right;">${r.speedMBps} MB/s</td>
+          <td style="text-align: right;">${r.totalTimePerVM} min</td>
+          <td style="text-align: right;">${r.vmsPerHourPerStream}</td>
+          <td style="text-align: right; font-weight: 600;">${r.vmsPerWeek.toLocaleString()}</td>
+          <td style="text-align: right; font-weight: 600;">${r.weeksNeeded}</td>
+          <td style="text-align: right;" class="highlight">${r.monthsNeeded}</td>
+        </tr>
+      `).join('');
+    }
+
+    function updateSummary(results, fixedConcurrency) {
+      const baselineMonths = results[0].monthsNeeded;
+      
+      const summaryCards = document.getElementById('summaryCards');
+      summaryCards.innerHTML = results.map((r, i) => {
+        const timeSavingsMonths = (baselineMonths - r.monthsNeeded).toFixed(1);
+        const timeSavingsPercent = Math.round((baselineMonths - r.monthsNeeded) / baselineMonths * 100);
+        
+        return `
+          <div class="summary-card ${i === 2 ? 'best' : ''}">
+            <div class="summary-title">${r.name} ${i === 2 ? '⭐' : ''}</div>
+            <div class="summary-value" style="color: ${r.color};">${r.monthsNeeded} months</div>
+            <div class="summary-detail">• Migrates <strong>${r.vmsPerWeek.toLocaleString()}</strong> VMs/week</div>
+            <div class="summary-detail">• <strong>${r.vmsPerHourPerStream}</strong> VMs/hr per stream</div>
+            ${i > 0 ? `<div class="savings">✓ Saves ${timeSavingsMonths} months (${timeSavingsPercent}% faster)</div>` : ''}
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('bottomLineText').textContent = 
+        `With ${fixedConcurrency} concurrent streams, ${results[2].name} completes the migration in just ${results[2].monthsNeeded} months — ` +
+        `that's ${(results[0].monthsNeeded - results[2].monthsNeeded).toFixed(1)} months faster than ${results[0].name}. ` +
+        `${results[1].name} offers a middle ground at ${results[1].monthsNeeded} months.`;
+    }
+
+    async function exportToPDF() {
+      const button = document.getElementById('pdfButton');
+      button.disabled = true;
+      button.textContent = '⏳ Generating...';
+
+      try {
+        if (!window.html2canvas) {
+          const script1 = document.createElement('script');
+          script1.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+          document.head.appendChild(script1);
+          await new Promise(resolve => script1.onload = resolve);
+        }
+        
+        if (!window.jspdf) {
+          const script2 = document.createElement('script');
+          script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+          document.head.appendChild(script2);
+          await new Promise(resolve => script2.onload = resolve);
+        }
+
+        const element = document.getElementById('reportContent');
+        const canvas = await html2canvas(element, {
+          scale: 1.5,
+          backgroundColor: '#f3f4f6'
+        });
+        
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width * 25.4 / 96;
+        const imgHeight = canvas.height * 25.4 / 96;
+        const ratio = pdfWidth / imgWidth;
+        
+        pdf.addImage(imgData, 'JPEG', 0, 5, imgWidth * ratio, imgHeight * ratio);
+        pdf.save('VMware-Migration-Analysis.pdf');
+        
+        button.textContent = '📄 Export to PDF';
+        button.disabled = false;
+      } catch (error) {
+        alert('PDF export failed: ' + error.message);
+        button.textContent = '📄 Export to PDF';
+        button.disabled = false;
+      }
+    }
+
+    // Initialize
+    window.onload = function() {
+      calculate();
+    };
+  </script>
+</body>
+</html>
