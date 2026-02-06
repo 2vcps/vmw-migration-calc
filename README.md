@@ -1,15 +1,15 @@
 # VMware to OpenShift Virtualization Migration Calculator
 
-A web-based calculator that helps organizations estimate the costs and benefits of migrating from VMware virtualization to OpenShift Virtualization (KubeVirt).
+A web-based calculator that helps organizations estimate VM migration timelines by comparing different transfer technologies (Network Copy, XCopy Array, and VolCopy FlashArray).
 
 ## Features
 
-- **Cost Analysis**: Compare lifecycle costs between VMware and OpenShift Virtualization
-- **Performance Metrics**: Evaluate performance characteristics and resource requirements
-- **ROI Calculation**: Calculate return on investment and cost savings
-- **Visual Reports**: Charts and graphs showing cost breakdowns and comparisons
+- **Transfer Technology Comparison**: Compare migration completion times across three transfer methods
+- **Migration Timeline Analysis**: Calculate weeks and months needed to migrate your VMs
+- **Throughput Metrics**: View VMs per week and per-hour throughput by technology
+- **Visual Reports**: Charts comparing completion times and weekly throughput
 - **PDF Export**: Generate printable reports of calculations
-- **Interactive Inputs**: Customize calculations based on your infrastructure
+- **Interactive Inputs**: Customize calculations based on your migration parameters
 
 ## Technology Stack
 
@@ -61,26 +61,41 @@ kubectl port-forward svc/migration-calculator 8080:80
 
 The calculator accepts the following parameters:
 
-- **VMware Inputs**
-  - Number of VMs
-  - Compute costs (CPU, memory)
-  - Storage requirements
-  - Licensing costs
-  - Support and maintenance costs
+- **Project Configuration**
+  - Total VMs to Migrate
+  - Available Concurrent Streams
+  - Weeks per Year
+  - Migration Windows per Week
 
-- **OpenShift Virtualization Inputs**
-  - Cluster infrastructure costs
-  - Storage costs
-  - Support and licensing
-  - Migration timeline and labor
+- **Window Configuration**
+  - Window Duration (hours)
+  - Overhead per Window (hours)
+  - Efficiency Factor (0-1)
+
+- **Per-VM Data Model**
+  - Average Data per VM (GB)
+  - Per-VM Overhead (minutes)
 
 ## Outputs
 
-- Total cost of ownership (TCO) comparison
-- 5-year financial analysis
-- Cost breakdowns by category
-- ROI and payback period
-- Recommendation based on financial analysis
+- **Completion time by technology** (months)
+- **Weekly throughput** (VMs per week per technology)
+- **Detailed comparison table** showing:
+  - Transfer speed (MB/s)
+  - Time per VM (minutes)
+  - VMs/hour/stream
+  - VMs/week
+  - Total weeks needed
+  - Total months needed
+- **Time savings summary** showing which technology saves the most time
+
+## Transfer Technologies
+
+The calculator compares three transfer methods:
+
+1. **Network Copy** - Standard network transfer (100 MB/s)
+2. **XCopy (Array)** - Storage array-based XCopy offload (500 MB/s)
+3. **VolCopy (FlashArray)** - Direct FlashArray volume copy (2000 MB/s)
 
 ## Architecture
 
