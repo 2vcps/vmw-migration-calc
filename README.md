@@ -1,15 +1,28 @@
-# VMware to OpenShift Virtualization Migration Calculator
+# VMware Migration Planning Toolkit
 
-A web-based calculator that helps organizations estimate VM migration timelines by comparing different transfer technologies (Network Copy, XCopy Array, and VolCopy FlashArray).
+A suite of web-based calculators that help organizations plan VMware-to-cloud migrations — from estimating transfer timelines to building a full financial ROI/TCO business case.
 
 ## Features
 
+### Transfer Time Calculator (`migration-calculator.html`)
 - **Transfer Technology Comparison**: Compare migration completion times across three transfer methods
 - **Migration Timeline Analysis**: Calculate weeks and months needed to migrate your VMs
 - **Throughput Metrics**: View VMs per week and per-hour throughput by technology
 - **Visual Reports**: Charts comparing completion times and weekly throughput
-- **PDF Export**: Generate printable reports of calculations
-- **Interactive Inputs**: Customize calculations based on your migration parameters
+
+### ROI & TCO Calculator (`roi-calculator.html`)
+- **VMware TCO Analysis**: Full cost breakdown — licensing, support, labor, power, facilities, hardware
+- **Cloud Cost Modeling**: Compute, storage, egress, managed services with provider-specific defaults (AWS/Azure/GCP)
+- **Multi-Year Projections**: Year-by-year costs with escalation rates (VMware licensing up 15%/yr, cloud pricing down 5%/yr)
+- **Financial Metrics**: NPV, IRR, ROI %, and payback period calculations
+- **6 Interactive Charts**: TCO comparison, cumulative savings, cost breakdowns (doughnut), year-over-year, sensitivity tornado
+- **Sensitivity Analysis**: Interactive sliders for VMware licensing, cloud pricing, and rightsizing assumptions
+- **Recommendations Engine**: Context-aware advice on pricing models, Broadcom impact, and migration strategy
+
+### Shared Features
+- **PDF Export**: Generate printable reports from either calculator
+- **Linked Navigation**: Shared nav bar connects both calculators
+- **Interactive Inputs**: All calculations update dynamically
 
 ## Technology Stack
 
@@ -21,12 +34,11 @@ A web-based calculator that helps organizations estimate VM migration timelines 
 
 ### Local Development
 
-Simply open `migration-calculator.html` in a web browser:
+Open either calculator directly in a web browser:
 
 ```bash
-open migration-calculator.html
-# or
-firefox migration-calculator.html
+open migration-calculator.html   # Transfer time analysis
+open roi-calculator.html          # ROI & TCO analysis
 ```
 
 ### Docker
@@ -121,9 +133,11 @@ The calculator compares three transfer methods:
 
 ## Files
 
-- `migration-calculator.html` - Main application file
+- `migration-calculator.html` - Transfer time calculator
+- `roi-calculator.html` - ROI & TCO financial calculator
 - `Dockerfile` - Container image definition
 - `k8s-deployment.yaml` - Kubernetes deployment manifest
+- `CLAUDE.md` - Claude Code project guidance
 - `README.md` - This file
 
 ## Support

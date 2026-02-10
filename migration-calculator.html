@@ -192,9 +192,48 @@
       font-size: 13px;
       color: #1e40af;
     }
+
+    /* Navigation Bar */
+    .top-nav {
+      background: #1f2937;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      height: 48px;
+      gap: 0;
+    }
+    .top-nav .nav-brand {
+      color: #9ca3af;
+      font-size: 13px;
+      font-weight: 600;
+      margin-right: 24px;
+      white-space: nowrap;
+    }
+    .top-nav a {
+      color: #d1d5db;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px 16px;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .top-nav a:hover {
+      color: #fff;
+      border-bottom-color: #6b7280;
+    }
+    .top-nav a.active {
+      color: #fff;
+      border-bottom-color: #8b5cf6;
+    }
   </style>
 </head>
 <body>
+  <nav class="top-nav">
+    <span class="nav-brand">Migration Toolkit</span>
+    <a href="migration-calculator.html" class="active">Transfer Time Calculator</a>
+    <a href="roi-calculator.html">ROI & TCO Analysis</a>
+  </nav>
   <div class="container" id="reportContent">
     <div class="header">
       <h1>VMware to OpenShift Virtualization</h1>

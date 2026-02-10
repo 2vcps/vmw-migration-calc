@@ -23,6 +23,19 @@ Single self-contained HTML file (`migration-calculator.html`) with inline CSS an
 
 **Key assumption:** The baseline for savings percentages is always the first technology in the `technologies` array (Network Copy).
 
+## ROI & TCO Calculator
+
+`roi-calculator.html` — a companion page providing financial ROI/TCO analysis for VMware-to-cloud migration. Same architecture: single self-contained HTML file, Chart.js 4.4.0 from CDN, html2canvas + jsPDF lazy-loaded for PDF export.
+
+**Core data flow:**
+1. 5 tabbed input sections collect VMware environment, target platform, migration project, financial assumptions, and optional benefits
+2. `calculateROI()` orchestrates: `computeVMwareTCO()` → `computeTargetCost()` → `computeYearlyProjections()` → NPV/IRR/payback → update all charts/tables/recommendations
+3. `computeYearlyProjections()` applies annual escalation rates (VMware licensing up, cloud pricing down) for multi-year projection
+4. `computeSensitivity()` reruns projections at ±20% for 6 key variables to build tornado chart
+5. Interactive sensitivity sliders write back to main inputs and trigger full recalculation
+
+**Shared nav bar:** Both calculators have a `.top-nav` bar linking to each other. The active page is highlighted.
+
 ## Development
 
-Open `migration-calculator.html` directly in a browser. All inputs trigger `calculate()` via `onchange`. No build step or server required.
+Open `migration-calculator.html` or `roi-calculator.html` directly in a browser. All inputs trigger `calculate()` / `calculateROI()` via `onchange` or button click. No build step or server required.
