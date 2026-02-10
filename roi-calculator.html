@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VMware Migration ROI & TCO Calculator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f3f4f6;
+    }
+
+    /* Navigation Bar */
+    .top-nav {
+      background: #1f2937;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      height: 48px;
+      gap: 0;
+    }
+    .top-nav .nav-brand {
+      color: #9ca3af;
+      font-size: 13px;
+      font-weight: 600;
+      margin-right: 24px;
+      white-space: nowrap;
+    }
+    .top-nav a {
+      color: #d1d5db;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px 16px;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .top-nav a:hover {
+      color: #fff;
+      border-bottom-color: #6b7280;
+    }
+    .top-nav a.active {
+      color: #fff;
+      border-bottom-color: #8b5cf6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 32px;
+      border-radius: 12px;
+      color: white;
+      margin-bottom: 32px;
+      position: relative;
+    }
+    .header h1 {
+      margin: 0 0 8px 0;
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .header p {
+      margin: 0;
+      font-size: 18px;
+      opacity: 0.95;
+    }
+    .pdf-button {
+      position: absolute;
+      top: 32px;
+      right: 32px;
+      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid white;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pdf-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .pdf-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 0;
+      border-bottom: 2px solid #e5e7eb;
+      flex-wrap: wrap;
+    }
+    .tab-button {
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #6b7280;
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+    .tab-button:hover {
+      color: #374151;
+    }
+    .tab-button.active {
+      color: #7c3aed;
+      border-bottom-color: #7c3aed;
+    }
+    .tab-panel {
+      display: none;
+      padding: 24px 0;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .card h2 {
+      margin: 0 0 20px 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    .card h3 {
+      margin: 0 0 16px 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: #374151;
+    }
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    .input-group {
+      margin-bottom: 16px;
+    }
+    .input-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+    .input-group input,
+    .input-group select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+      background: white;
+    }
+    .input-group small {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .calculate-btn {
+      display: block;
+      width: 100%;
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 32px;
+      transition: opacity 0.2s;
+    }
+    .calculate-btn:hover {
+      opacity: 0.9;
+    }
+
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .kpi-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+    .kpi-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1f2937;
+    }
+    .kpi-value.positive { color: #059669; }
+    .kpi-value.negative { color: #dc2626; }
+    .kpi-sub {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    /* Charts */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .chart-container {
+      position: relative;
+      height: 320px;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    thead tr {
+      background: #f9fafb;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      font-weight: 600;
+      color: #374151;
+    }
+    tbody tr {
+      border-bottom: 1px solid #e5e7eb;
+    }
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    /* Sensitivity */
+    .sensitivity-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    .sensitivity-label {
+      width: 200px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      flex-shrink: 0;
+    }
+    .sensitivity-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: #e5e7eb;
+      outline: none;
+    }
+    .sensitivity-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #7c3aed;
+      cursor: pointer;
+    }
+    .sensitivity-value {
+      width: 60px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1f2937;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Recommendations */
+    .recommendation {
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .recommendation.positive {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+    }
+    .recommendation.neutral {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+    }
+    .recommendation.warning {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #92400e;
+    }
+
+    #resultsSection {
+      display: none;
+    }
+    #resultsSection.visible {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 { font-size: 24px; }
+      .pdf-button { position: static; margin-top: 16px; }
+      .chart-grid { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .sensitivity-row { flex-wrap: wrap; }
+      .sensitivity-label { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="top-nav">
+    <span class="nav-brand">Migration Toolkit</span>
+    <a href="migration-calculator.html">Transfer Time Calculator</a>
+    <a href="roi-calculator.html" class="active">ROI & TCO Analysis</a>
+  </nav>
+
+  <div class="container" id="reportContent">
+    <div class="header">
+      <h1>VMware Migration ROI & TCO Calculator</h1>
+      <p>Comprehensive financial analysis for VMware-to-cloud migration planning</p>
+      <button class="pdf-button" id="pdfButton" onclick="exportToPDF()">Export to PDF</button>
+    </div>
+
+    <!-- Input Tabs -->
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-button active" onclick="switchTab(event, 'tab-vmware')">VMware Environment</button>
+        <button class="tab-button" onclick="switchTab(event, 'tab-target')">Target Platform</button>
+        <button class="tab-button" onclick="switchTab(event, 'tab-migration')">Migration Project</button>
+        <button class="tab-button" onclick="switchTab(event, 'tab-financial')">Financial Assumptions</button>
+        <button class="tab-button" onclick="switchTab(event, 'tab-benefits')">Benefits & Intangibles</button>
+      </div>
+
+      <!-- Tab 1: VMware Environment -->
+      <div class="tab-panel active" id="tab-vmware">
+        <div class="input-grid">
+          <div>
+            <h3>VM Fleet</h3>
+            <div class="input-group">
+              <label>Number of VMs</label>
+              <input type="number" id="vmCount" value="500">
+            </div>
+            <div class="input-group">
+              <label>Average vCPUs per VM</label>
+              <input type="number" id="avgVcpu" value="4">
+            </div>
+            <div class="input-group">
+              <label>Average RAM per VM (GB)</label>
+              <input type="number" id="avgRam" value="16">
+            </div>
+            <div class="input-group">
+              <label>Average Storage per VM (GB)</label>
+              <input type="number" id="avgStorage" value="200">
+            </div>
+            <div class="input-group">
+              <label>Average Utilization (%)</label>
+              <input type="number" id="utilization" value="40" min="1" max="100">
+              <small>Industry median ~40%</small>
+            </div>
+            <div class="input-group">
+              <label>Physical Hosts</label>
+              <input type="number" id="physicalHosts" value="25">
+            </div>
+          </div>
+          <div>
+            <h3>VMware Licensing & Support</h3>
+            <div class="input-group">
+              <label>VMware License Cost ($/core/year)</label>
+              <input type="number" id="vmwareLicenseCost" value="8400" step="100">
+              <small>VCF Standard post-Broadcom ~$8,400/core</small>
+            </div>
+            <div class="input-group">
+              <label>Sockets per Host</label>
+              <input type="number" id="socketsPerHost" value="2">
+            </div>
+            <div class="input-group">
+              <label>Cores per Socket</label>
+              <input type="number" id="coresPerSocket" value="16">
+            </div>
+            <div class="input-group">
+              <label>Support Cost (% of License)</label>
+              <input type="number" id="supportPct" value="22" step="1">
+            </div>
+          </div>
+          <div>
+            <h3>Operations</h3>
+            <div class="input-group">
+              <label>VMware Admin FTEs</label>
+              <input type="number" id="adminFtes" value="4" step="0.5">
+            </div>
+            <div class="input-group">
+              <label>Average FTE Salary ($/year)</label>
+              <input type="number" id="fteSalary" value="130000" step="5000">
+            </div>
+            <div class="input-group">
+              <label>Power Cost ($/kWh)</label>
+              <input type="number" id="powerCost" value="0.12" step="0.01">
+            </div>
+            <div class="input-group">
+              <label>Power per Host (kW)</label>
+              <input type="number" id="kwPerHost" value="1.2" step="0.1">
+            </div>
+            <div class="input-group">
+              <label>PUE Ratio</label>
+              <input type="number" id="pue" value="1.5" step="0.1">
+              <small>Enterprise average ~1.5</small>
+            </div>
+            <div class="input-group">
+              <label>DC Space Cost ($/host/month)</label>
+              <input type="number" id="dcSpaceCost" value="500" step="50">
+            </div>
+            <div class="input-group">
+              <label>Other Annual OpEx ($)</label>
+              <input type="number" id="otherOpex" value="50000" step="5000">
+              <small>Monitoring, backup, misc tools</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Target Platform -->
+      <div class="tab-panel" id="tab-target">
+        <div class="input-grid">
+          <div>
+            <h3>Cloud Provider</h3>
+            <div class="input-group">
+              <label>Target Platform</label>
+              <select id="cloudProvider" onchange="updateCloudDefaults()">
+                <option value="ocp">Red Hat OpenShift Virtualization</option>
+                <option value="aws">Amazon Web Services (AWS)</option>
+                <option value="azure">Microsoft Azure</option>
+                <option value="gcp">Google Cloud Platform (GCP)</option>
+                <option value="other">Other / Self-managed</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Pricing Model</label>
+              <select id="pricingModel" onchange="updateCloudDefaults()">
+                <option value="ondemand">On-Demand / Standard Subscription</option>
+                <option value="ri1yr">1-Year Reserved / Committed</option>
+                <option value="ri3yr">3-Year Reserved / Committed</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Rightsizing Savings (%)</label>
+              <input type="number" id="rightsizing" value="25" min="0" max="80">
+              <small>Typical 20-35% from right-sizing workloads</small>
+            </div>
+          </div>
+          <div>
+            <h3>Cloud Costs</h3>
+            <div class="input-group">
+              <label>vCPU-Hour Price ($)</label>
+              <input type="number" id="vcpuHourPrice" value="0.0084" step="0.0001">
+              <small id="vcpuPriceHint">OCP Virt Engine Standard: ~$4,703/socket-pair/yr</small>
+            </div>
+            <div class="input-group">
+              <label>Storage Cost ($/GB/month)</label>
+              <input type="number" id="cloudStorageCost" value="0.03" step="0.01">
+            </div>
+            <div class="input-group">
+              <label>Monthly Egress (GB)</label>
+              <input type="number" id="egressGB" value="1000" step="100">
+            </div>
+            <div class="input-group">
+              <label>Egress Cost ($/GB)</label>
+              <input type="number" id="egressCost" value="0.00" step="0.01">
+            </div>
+            <div class="input-group">
+              <label>Managed Services ($/month)</label>
+              <input type="number" id="managedServices" value="2000" step="100">
+              <small>Monitoring, logging, managed DB, etc.</small>
+            </div>
+            <div class="input-group">
+              <label>OS Licensing ($/VM/month)</label>
+              <input type="number" id="osLicensing" value="0" step="1">
+              <small>RHEL, Windows Server, etc.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Migration Project -->
+      <div class="tab-panel" id="tab-migration">
+        <div class="input-grid">
+          <div>
+            <h3>Strategy</h3>
+            <div class="input-group">
+              <label>Migration Strategy</label>
+              <select id="migrationStrategy">
+                <option value="rehost">Rehost (Lift & Shift)</option>
+                <option value="replatform">Replatform (Lift & Optimize)</option>
+                <option value="refactor">Refactor / Re-architect</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Migration Phases</label>
+              <input type="number" id="migrationPhases" value="3" min="1" max="10">
+            </div>
+            <div class="input-group">
+              <label>Total Migration Timeline (months)</label>
+              <input type="number" id="migrationTimeline" value="12" min="1">
+            </div>
+          </div>
+          <div>
+            <h3>One-Time Costs</h3>
+            <div class="input-group">
+              <label>Migration Tools & Licensing ($)</label>
+              <input type="number" id="migrationTools" value="50000" step="5000">
+            </div>
+            <div class="input-group">
+              <label>Data Transfer Costs ($)</label>
+              <input type="number" id="dataTransferCost" value="25000" step="5000">
+            </div>
+            <div class="input-group">
+              <label>Consulting / Professional Services ($)</label>
+              <input type="number" id="consultingCost" value="150000" step="10000">
+            </div>
+            <div class="input-group">
+              <label>Training ($)</label>
+              <input type="number" id="trainingCost" value="40000" step="5000">
+            </div>
+            <div class="input-group">
+              <label>Estimated Downtime Cost ($)</label>
+              <input type="number" id="downtimeCost" value="25000" step="5000">
+              <small>Revenue loss during migration windows</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Financial Assumptions -->
+      <div class="tab-panel" id="tab-financial">
+        <div class="input-grid">
+          <div>
+            <h3>Analysis Parameters</h3>
+            <div class="input-group">
+              <label>Analysis Horizon (years)</label>
+              <input type="number" id="horizonYears" value="5" min="1" max="10">
+            </div>
+            <div class="input-group">
+              <label>Discount Rate (%)</label>
+              <input type="number" id="discountRate" value="8" step="0.5">
+              <small>For NPV calculation (WACC)</small>
+            </div>
+            <div class="input-group">
+              <label>Tax Rate (%)</label>
+              <input type="number" id="taxRate" value="25" step="1">
+            </div>
+            <div class="input-group">
+              <label>Migration Tax Credits ($)</label>
+              <input type="number" id="migrationCredits" value="0" step="5000">
+              <small>Cloud provider migration credits</small>
+            </div>
+          </div>
+          <div>
+            <h3>Annual Escalation Rates</h3>
+            <div class="input-group">
+              <label>Energy Cost Escalation (%/year)</label>
+              <input type="number" id="energyEscalation" value="4" step="0.5">
+            </div>
+            <div class="input-group">
+              <label>Labor Cost Escalation (%/year)</label>
+              <input type="number" id="laborEscalation" value="3" step="0.5">
+            </div>
+            <div class="input-group">
+              <label>Cloud Pricing Change (%/year)</label>
+              <input type="number" id="cloudEscalation" value="-5" step="0.5">
+              <small>Negative = prices decrease over time</small>
+            </div>
+            <div class="input-group">
+              <label>VMware Licensing Escalation (%/year)</label>
+              <input type="number" id="vmwareEscalation" value="15" step="1">
+              <small>Post-Broadcom trend ~15%/year</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 5: Benefits & Intangibles -->
+      <div class="tab-panel" id="tab-benefits">
+        <div class="input-grid">
+          <div>
+            <h3>Optional: Estimated Annual Value</h3>
+            <div class="input-group">
+              <label>Agility / Faster Time-to-Market ($/year)</label>
+              <input type="number" id="agilityValue" value="0" step="10000">
+              <small>Value of faster deployments, auto-scaling, CI/CD</small>
+            </div>
+            <div class="input-group">
+              <label>Sustainability / Green IT ($/year)</label>
+              <input type="number" id="sustainabilityValue" value="0" step="5000">
+              <small>Carbon credit value, ESG compliance</small>
+            </div>
+            <div class="input-group">
+              <label>Risk Reduction ($/year)</label>
+              <input type="number" id="riskValue" value="0" step="10000">
+              <small>Reduced vendor lock-in risk, improved DR/HA</small>
+            </div>
+          </div>
+          <div>
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin-top: 24px;">
+              <h3 style="margin-top: 0;">About Intangible Benefits</h3>
+              <p style="font-size: 13px; color: #6b7280; line-height: 1.6; margin: 0;">
+                These values are optional and represent estimated annual financial impact of strategic benefits.
+                They are included in the total savings calculation but shown separately for transparency.
+                Leave at $0 for a conservative pure-cost analysis. Common estimates:
+              </p>
+              <ul style="font-size: 13px; color: #6b7280; line-height: 1.8; margin: 12px 0 0 0; padding-left: 20px;">
+                <li><strong>Agility:</strong> $50K-$500K/yr depending on dev velocity impact</li>
+                <li><strong>Sustainability:</strong> $10K-$100K/yr for carbon offset value</li>
+                <li><strong>Risk Reduction:</strong> $25K-$200K/yr for DR improvements</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="calculate-btn" onclick="calculateROI()">Calculate ROI</button>
+
+    <!-- Results Section -->
+    <div id="resultsSection">
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="kpiCards"></div>
+
+      <!-- Charts Row 1: TCO Comparison & Cumulative Savings -->
+      <div class="chart-grid">
+        <div class="card">
+          <h2>Total Cost of Ownership Comparison</h2>
+          <div class="chart-container">
+            <canvas id="tcoChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Cumulative Savings Over Time</h2>
+          <div class="chart-container">
+            <canvas id="savingsChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row 2: Cost Breakdowns -->
+      <div class="chart-grid">
+        <div class="card">
+          <h2>VMware Cost Breakdown</h2>
+          <div class="chart-container">
+            <canvas id="vmwarePieChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Target Platform Cost Breakdown</h2>
+          <div class="chart-container">
+            <canvas id="targetPieChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row 3: Year-over-Year & Sensitivity -->
+      <div class="chart-grid">
+        <div class="card">
+          <h2>Year-over-Year Cost Comparison</h2>
+          <div class="chart-container">
+            <canvas id="yoyChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Sensitivity Analysis</h2>
+          <div class="chart-container">
+            <canvas id="sensitivityChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Projection Table -->
+      <div class="card">
+        <h2>Year-by-Year Financial Projection</h2>
+        <div style="overflow-x: auto;">
+          <table>
+            <thead id="projectionHead"></thead>
+            <tbody id="projectionBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sensitivity Sliders -->
+      <div class="card">
+        <h2>Interactive Sensitivity Analysis</h2>
+        <p style="font-size: 13px; color: #6b7280; margin-bottom: 20px;">Adjust these key variables to see their impact on your ROI. Charts update in real-time.</p>
+        <div class="sensitivity-row">
+          <span class="sensitivity-label">VMware License Escalation</span>
+          <input type="range" class="sensitivity-slider" id="sensVmware" min="0" max="30" value="15" oninput="onSensitivityChange()">
+          <span class="sensitivity-value" id="sensVmwareVal">15%</span>
+        </div>
+        <div class="sensitivity-row">
+          <span class="sensitivity-label">Cloud Pricing Change</span>
+          <input type="range" class="sensitivity-slider" id="sensCloud" min="-15" max="10" value="-5" oninput="onSensitivityChange()">
+          <span class="sensitivity-value" id="sensCloudVal">-5%</span>
+        </div>
+        <div class="sensitivity-row">
+          <span class="sensitivity-label">Rightsizing Savings</span>
+          <input type="range" class="sensitivity-slider" id="sensRightsize" min="0" max="60" value="25" oninput="onSensitivityChange()">
+          <span class="sensitivity-value" id="sensRightsizeVal">25%</span>
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="card">
+        <h2>Recommendations</h2>
+        <div id="recommendations"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Chart instances ──
+    let tcoChart, savingsChart, vmwarePieChart, targetPieChart, yoyChart, sensitivityChart;
+
+    // ── Tab navigation ──
+    function switchTab(e, tabId) {
+      document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    // ── Cloud pricing defaults ──
+    const cloudPricing = {
+      ocp:   { ondemand: 0.0084, ri1yr: 0.0176, ri3yr: 0.0150, storage: 0.03, egress: 0.00 },
+      aws:   { ondemand: 0.042, ri1yr: 0.026, ri3yr: 0.017, storage: 0.08, egress: 0.09 },
+      azure: { ondemand: 0.044, ri1yr: 0.028, ri3yr: 0.018, storage: 0.08, egress: 0.087 },
+      gcp:   { ondemand: 0.040, ri1yr: 0.025, ri3yr: 0.016, storage: 0.08, egress: 0.085 },
+      other: { ondemand: 0.042, ri1yr: 0.026, ri3yr: 0.017, storage: 0.08, egress: 0.09 }
+    };
+
+    function updateCloudDefaults() {
+      const provider = document.getElementById('cloudProvider').value;
+      const model = document.getElementById('pricingModel').value;
+      const p = cloudPricing[provider];
+      document.getElementById('vcpuHourPrice').value = p[model];
+      document.getElementById('cloudStorageCost').value = p.storage;
+      document.getElementById('egressCost').value = p.egress;
+
+      // Update pricing model labels and hints for OpenShift (subscription-based)
+      const pricingSelect = document.getElementById('pricingModel');
+      const hint = document.getElementById('vcpuPriceHint');
+      if (provider === 'ocp') {
+        pricingSelect.options[0].text = 'Standard Subscription (8x5 support)';
+        pricingSelect.options[1].text = 'Premium Subscription (24x7 support)';
+        pricingSelect.options[2].text = '3-Year Premium Subscription';
+        const ocpHints = {
+          ondemand: 'OCP Virt Engine Standard: ~$4,703/socket-pair/yr',
+          ri1yr: 'OCP Virt Engine Premium: ~$9,880/socket-pair/yr',
+          ri3yr: 'OCP Virt Engine Premium 3yr: ~$8,400/socket-pair/yr'
+        };
+        hint.textContent = ocpHints[model];
+      } else {
+        pricingSelect.options[0].text = 'On-Demand / Standard Subscription';
+        pricingSelect.options[1].text = '1-Year Reserved / Committed';
+        pricingSelect.options[2].text = '3-Year Reserved / Committed';
+        hint.textContent = 'Per vCPU per hour, compute cost';
+      }
+    }
+
+    // ── Helper: read numeric input ──
+    function v(id) { return Number(document.getElementById(id).value) || 0; }
+    function fmt(n) { return n.toLocaleString('en-US', { maximumFractionDigits: 0 }); }
+    function fmtDollar(n) {
+      if (Math.abs(n) >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+      if (Math.abs(n) >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
+      return '$' + fmt(n);
+    }
+
+    // ── VMware TCO (Year 1 baseline) ──
+    function computeVMwareTCO() {
+      const hosts = v('physicalHosts');
+      const socketsPerHost = v('socketsPerHost');
+      const coresPerSocket = v('coresPerSocket');
+      const totalCores = hosts * socketsPerHost * coresPerSocket;
+
+      const licensing = totalCores * v('vmwareLicenseCost');
+      const support = licensing * (v('supportPct') / 100);
+      const labor = v('adminFtes') * v('fteSalary');
+      const power = hosts * v('kwPerHost') * v('pue') * 8760 * v('powerCost');
+      const facilities = hosts * v('dcSpaceCost') * 12;
+      const hardware = hosts * 15000; // ~$15K/host/yr depreciation (5-yr cycle on ~$75K servers)
+      const other = v('otherOpex');
+
+      return {
+        licensing,
+        support,
+        labor,
+        power,
+        facilities,
+        hardware,
+        other,
+        total: licensing + support + labor + power + facilities + hardware + other
+      };
+    }
+
+    // ── Target platform annual cost (Year 1 baseline) ──
+    function computeTargetCost() {
+      const vmCount = v('vmCount');
+      const avgVcpu = v('avgVcpu');
+      const avgStorageGB = v('avgStorage');
+      const rightsizeFactor = 1 - (v('rightsizing') / 100);
+
+      const compute = vmCount * avgVcpu * rightsizeFactor * v('vcpuHourPrice') * 8760;
+      const storage = vmCount * avgStorageGB * v('cloudStorageCost') * 12;
+      const egress = v('egressGB') * v('egressCost') * 12;
+      const managed = v('managedServices') * 12;
+      const osLic = v('osLicensing') * vmCount * 12;
+
+      // Cloud labor: assume 60% of on-prem FTEs (cloud reduces ops overhead)
+      const labor = v('adminFtes') * 0.6 * v('fteSalary');
+
+      return {
+        compute,
+        storage,
+        egress,
+        managed,
+        osLicensing: osLic,
+        labor,
+        total: compute + storage + egress + managed + osLic + labor
+      };
+    }
+
+    // ── Migration one-time costs ──
+    function computeMigrationCost() {
+      return v('migrationTools') + v('dataTransferCost') + v('consultingCost') +
+             v('trainingCost') + v('downtimeCost') - v('migrationCredits');
+    }
+
+    // ── Annual intangible benefits ──
+    function computeBenefits() {
+      return v('agilityValue') + v('sustainabilityValue') + v('riskValue');
+    }
+
+    // ── Year-by-year projection with escalation ──
+    function computeYearlyProjections(vmwareTCO, targetCost, migrationCost, benefits, overrides) {
+      const horizon = v('horizonYears');
+      const vmwareEsc = (overrides && overrides.vmwareEsc !== undefined) ? overrides.vmwareEsc / 100 : v('vmwareEscalation') / 100;
+      const energyEsc = v('energyEscalation') / 100;
+      const laborEsc = v('laborEscalation') / 100;
+      const cloudEsc = (overrides && overrides.cloudEsc !== undefined) ? overrides.cloudEsc / 100 : v('cloudEscalation') / 100;
+      const rightsizeOverride = overrides && overrides.rightsizing !== undefined ? overrides.rightsizing : null;
+      const migrationMonths = v('migrationTimeline');
+
+      const years = [];
+      let cumulativeSavings = 0;
+
+      for (let yr = 1; yr <= horizon; yr++) {
+        // VMware costs with escalation
+        const vmLicensing = vmwareTCO.licensing * Math.pow(1 + vmwareEsc, yr - 1);
+        const vmSupport = vmLicensing * (v('supportPct') / 100);
+        const vmPower = vmwareTCO.power * Math.pow(1 + energyEsc, yr - 1);
+        const vmLabor = vmwareTCO.labor * Math.pow(1 + laborEsc, yr - 1);
+        const vmOther = vmwareTCO.facilities + vmwareTCO.hardware + vmwareTCO.other;
+        const vmTotal = vmLicensing + vmSupport + vmPower + vmLabor + vmOther;
+
+        // Target costs with cloud pricing deflation
+        let tgtBase;
+        if (rightsizeOverride !== null) {
+          // Recompute with overridden rightsizing
+          const vmCount = v('vmCount');
+          const avgVcpu = v('avgVcpu');
+          const avgStorageGB = v('avgStorage');
+          const rf = 1 - (rightsizeOverride / 100);
+          const compute = vmCount * avgVcpu * rf * v('vcpuHourPrice') * 8760;
+          const storage = vmCount * avgStorageGB * v('cloudStorageCost') * 12;
+          const egress = v('egressGB') * v('egressCost') * 12;
+          const managed = v('managedServices') * 12;
+          const osLic = v('osLicensing') * vmCount * 12;
+          const labor = v('adminFtes') * 0.6 * v('fteSalary');
+          tgtBase = { compute, storage, egress, managed, osLicensing: osLic, labor, total: compute + storage + egress + managed + osLic + labor };
+        } else {
+          tgtBase = targetCost;
+        }
+
+        const tgtCompute = tgtBase.compute * Math.pow(1 + cloudEsc, yr - 1);
+        const tgtStorage = tgtBase.storage * Math.pow(1 + cloudEsc, yr - 1);
+        const tgtEgress = tgtBase.egress;
+        const tgtManaged = tgtBase.managed;
+        const tgtOsLic = tgtBase.osLicensing;
+        const tgtLabor = tgtBase.labor * Math.pow(1 + laborEsc, yr - 1);
+        let tgtTotal = tgtCompute + tgtStorage + tgtEgress + tgtManaged + tgtOsLic + tgtLabor;
+
+        // During migration: run both environments (proportional overlap)
+        let migCostThisYear = 0;
+        const migYears = migrationMonths / 12;
+        if (yr === 1) {
+          migCostThisYear = migrationCost;
+          if (migYears <= 1) {
+            // Partial year of dual-running: add proportional VMware cost
+            tgtTotal += vmTotal * (migYears * 0.5); // average 50% overlap during migration
+          } else {
+            tgtTotal += vmTotal * 0.5; // full overlap year 1
+          }
+        } else if (yr <= Math.ceil(migYears)) {
+          const remainingFraction = Math.min(1, migYears - (yr - 1));
+          tgtTotal += vmTotal * remainingFraction * 0.5;
+        }
+
+        const totalTarget = tgtTotal + migCostThisYear;
+        const annualSavings = vmTotal - totalTarget + benefits;
+        cumulativeSavings += annualSavings;
+
+        years.push({
+          year: yr,
+          vmwareTotal: vmTotal,
+          vmwareLicensing: vmLicensing,
+          vmwareSupport: vmSupport,
+          vmwarePower: vmPower,
+          vmwareLabor: vmLabor,
+          vmwareOther: vmOther,
+          targetTotal: totalTarget,
+          targetCompute: tgtCompute,
+          targetStorage: tgtStorage,
+          targetOther: tgtEgress + tgtManaged + tgtOsLic + tgtLabor,
+          migrationCost: migCostThisYear,
+          benefits,
+          annualSavings,
+          cumulativeSavings
+        });
+      }
+      return years;
+    }
+
+    // ── NPV calculation ──
+    function calcNPV(cashflows, rate) {
+      return cashflows.reduce((npv, cf, i) => npv + cf / Math.pow(1 + rate, i + 1), 0);
+    }
+
+    // ── IRR via Newton-Raphson with bisection fallback ──
+    function calcIRR(cashflows) {
+      // Prepend negative migration cost as initial investment
+      const migCost = computeMigrationCost();
+      const cfs = [-migCost, ...cashflows];
+
+      function npvAtRate(r) {
+        return cfs.reduce((sum, cf, i) => sum + cf / Math.pow(1 + r, i), 0);
+      }
+      function npvDeriv(r) {
+        return cfs.reduce((sum, cf, i) => i === 0 ? sum : sum - i * cf / Math.pow(1 + r, i + 1), 0);
+      }
+
+      // Newton-Raphson
+      let rate = 0.1;
+      for (let iter = 0; iter < 100; iter++) {
+        const f = npvAtRate(rate);
+        const df = npvDeriv(rate);
+        if (Math.abs(df) < 1e-10) break;
+        const newRate = rate - f / df;
+        if (Math.abs(newRate - rate) < 1e-7) return newRate;
+        rate = newRate;
+        if (rate < -0.99 || rate > 10) break; // out of reasonable range
+      }
+
+      // Bisection fallback
+      let lo = -0.5, hi = 5.0;
+      for (let iter = 0; iter < 200; iter++) {
+        const mid = (lo + hi) / 2;
+        if (npvAtRate(mid) > 0) lo = mid; else hi = mid;
+        if (hi - lo < 1e-7) return mid;
+      }
+      return (lo + hi) / 2;
+    }
+
+    // ── Payback period (months) ──
+    function calcPaybackPeriod(years) {
+      for (let i = 0; i < years.length; i++) {
+        if (years[i].cumulativeSavings >= 0) {
+          if (i === 0) {
+            // Payback within first year
+            const monthly = years[0].annualSavings / 12;
+            const migCost = years[0].migrationCost;
+            if (monthly > 0) {
+              return Math.ceil(migCost / monthly);
+            }
+            return 12;
+          }
+          // Linear interpolation
+          const prevCum = years[i - 1].cumulativeSavings;
+          const curCum = years[i].cumulativeSavings;
+          const fraction = -prevCum / (curCum - prevCum);
+          return Math.round(((i - 1) + fraction) * 12);
+        }
+      }
+      return null; // No payback within horizon
+    }
+
+    // ── Sensitivity analysis ──
+    function computeSensitivity(vmwareTCO, targetCost, migrationCost, benefits) {
+      const horizon = v('horizonYears');
+      const baseYears = computeYearlyProjections(vmwareTCO, targetCost, migrationCost, benefits, null);
+      const baseSavings = baseYears[baseYears.length - 1].cumulativeSavings;
+
+      const variables = [
+        { name: 'VMware Licensing', field: 'vmwareEsc', base: v('vmwareEscalation'), delta: v('vmwareEscalation') * 0.2 },
+        { name: 'Cloud Pricing', field: 'cloudEsc', base: v('cloudEscalation'), delta: Math.abs(v('cloudEscalation')) * 0.2 || 1 },
+        { name: 'Rightsizing', field: 'rightsizing', base: v('rightsizing'), delta: v('rightsizing') * 0.2 || 5 },
+        { name: 'VM Count', field: 'vmCount', base: v('vmCount'), delta: v('vmCount') * 0.2 },
+        { name: 'Utilization', field: 'utilization', base: v('utilization'), delta: v('utilization') * 0.2 },
+        { name: 'Admin FTEs', field: 'adminFtes', base: v('adminFtes'), delta: v('adminFtes') * 0.2 || 1 }
+      ];
+
+      return variables.map(vr => {
+        // +20%
+        const overHigh = {};
+        overHigh[vr.field] = vr.base + vr.delta;
+        const highYears = computeYearlyProjections(vmwareTCO, targetCost, migrationCost, benefits, overHigh);
+        const highSavings = highYears[highYears.length - 1].cumulativeSavings;
+
+        // -20%
+        const overLow = {};
+        overLow[vr.field] = vr.base - vr.delta;
+        const lowYears = computeYearlyProjections(vmwareTCO, targetCost, migrationCost, benefits, overLow);
+        const lowSavings = lowYears[lowYears.length - 1].cumulativeSavings;
+
+        return {
+          name: vr.name,
+          low: lowSavings - baseSavings,
+          high: highSavings - baseSavings,
+          baseSavings
+        };
+      });
+    }
+
+    // ── Main calculate function ──
+    function calculateROI() {
+      const vmwareTCO = computeVMwareTCO();
+      const targetCost = computeTargetCost();
+      const migrationCost = computeMigrationCost();
+      const benefits = computeBenefits();
+      const years = computeYearlyProjections(vmwareTCO, targetCost, migrationCost, benefits, null);
+
+      const discountRate = v('discountRate') / 100;
+      const cashflows = years.map(y => y.annualSavings);
+      const npv = calcNPV(cashflows, discountRate) - migrationCost;
+      const irr = calcIRR(cashflows);
+      const payback = calcPaybackPeriod(years);
+      const totalSavings = years[years.length - 1].cumulativeSavings;
+      const roi = migrationCost > 0 ? (totalSavings / migrationCost * 100) : 0;
+
+      // Show results
+      document.getElementById('resultsSection').classList.add('visible');
+
+      updateKPIs(totalSavings, roi, payback, npv);
+      updateCharts(vmwareTCO, targetCost, years);
+      updateSensitivityChart(vmwareTCO, targetCost, migrationCost, benefits);
+      updateProjectionTable(years);
+      updateRecommendations(roi, payback, npv, totalSavings, vmwareTCO, targetCost);
+
+      // Sync sensitivity sliders to current inputs
+      document.getElementById('sensVmware').value = v('vmwareEscalation');
+      document.getElementById('sensVmwareVal').textContent = v('vmwareEscalation') + '%';
+      document.getElementById('sensCloud').value = v('cloudEscalation');
+      document.getElementById('sensCloudVal').textContent = v('cloudEscalation') + '%';
+      document.getElementById('sensRightsize').value = v('rightsizing');
+      document.getElementById('sensRightsizeVal').textContent = v('rightsizing') + '%';
+    }
+
+    // ── Sensitivity slider handler ──
+    function onSensitivityChange() {
+      const vmwareEsc = Number(document.getElementById('sensVmware').value);
+      const cloudEsc = Number(document.getElementById('sensCloud').value);
+      const rightsizing = Number(document.getElementById('sensRightsize').value);
+
+      document.getElementById('sensVmwareVal').textContent = vmwareEsc + '%';
+      document.getElementById('sensCloudVal').textContent = cloudEsc + '%';
+      document.getElementById('sensRightsizeVal').textContent = rightsizing + '%';
+
+      // Write back to main inputs
+      document.getElementById('vmwareEscalation').value = vmwareEsc;
+      document.getElementById('cloudEscalation').value = cloudEsc;
+      document.getElementById('rightsizing').value = rightsizing;
+
+      // Recalculate
+      calculateROI();
+    }
+
+    // ── KPI Cards ──
+    function updateKPIs(totalSavings, roi, payback, npv) {
+      const kpiContainer = document.getElementById('kpiCards');
+      const horizon = v('horizonYears');
+      kpiContainer.innerHTML = `
+        <div class="kpi-card">
+          <div class="kpi-label">${horizon}-Year Total Savings</div>
+          <div class="kpi-value ${totalSavings >= 0 ? 'positive' : 'negative'}">${fmtDollar(totalSavings)}</div>
+          <div class="kpi-sub">Cumulative net savings</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Return on Investment</div>
+          <div class="kpi-value ${roi >= 0 ? 'positive' : 'negative'}">${roi.toFixed(0)}%</div>
+          <div class="kpi-sub">Total savings / migration cost</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Payback Period</div>
+          <div class="kpi-value">${payback !== null ? payback + ' mo' : 'N/A'}</div>
+          <div class="kpi-sub">${payback !== null ? 'Months to break even' : 'No payback in horizon'}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Net Present Value</div>
+          <div class="kpi-value ${npv >= 0 ? 'positive' : 'negative'}">${fmtDollar(npv)}</div>
+          <div class="kpi-sub">At ${v('discountRate')}% discount rate</div>
+        </div>
+      `;
+    }
+
+    // ── Charts ──
+    function destroyCharts() {
+      [tcoChart, savingsChart, vmwarePieChart, targetPieChart, yoyChart, sensitivityChart].forEach(c => { if (c) c.destroy(); });
+    }
+
+    function updateCharts(vmwareTCO, targetCost, years) {
+      destroyCharts();
+      const horizon = v('horizonYears');
+
+      // 1. Stacked bar: TCO comparison
+      const vmwareTotalMultiYear = years.reduce((s, y) => s + y.vmwareTotal, 0);
+      const targetTotalMultiYear = years.reduce((s, y) => s + y.targetTotal, 0);
+
+      tcoChart = new Chart(document.getElementById('tcoChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: ['VMware (Current)', 'Target Platform'],
+          datasets: [
+            { label: 'Licensing/Compute', data: [vmwareTCO.licensing * horizon, targetCost.compute * horizon], backgroundColor: '#8b5cf6' },
+            { label: 'Support/Managed', data: [vmwareTCO.support * horizon, targetCost.managed * horizon], backgroundColor: '#ec4899' },
+            { label: 'Labor', data: [vmwareTCO.labor * horizon, targetCost.labor * horizon], backgroundColor: '#f59e0b' },
+            { label: 'Power/Storage', data: [vmwareTCO.power * horizon, targetCost.storage * horizon], backgroundColor: '#10b981' },
+            { label: 'Facilities/Egress', data: [vmwareTCO.facilities * horizon, targetCost.egress * horizon], backgroundColor: '#6366f1' },
+            { label: 'Hardware/OS', data: [vmwareTCO.hardware * horizon, targetCost.osLicensing * horizon], backgroundColor: '#94a3b8' },
+            { label: 'Other', data: [vmwareTCO.other * horizon, 0], backgroundColor: '#d1d5db' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12 } },
+            tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtDollar(ctx.raw) } }
+          },
+          scales: {
+            x: { stacked: true },
+            y: { stacked: true, ticks: { callback: val => fmtDollar(val) } }
+          }
+        }
+      });
+
+      // 2. Cumulative savings line chart
+      const yearLabels = years.map(y => 'Year ' + y.year);
+      const discountRate = v('discountRate') / 100;
+      const npvLine = [];
+      let npvCum = 0;
+      years.forEach((y, i) => {
+        npvCum += y.annualSavings / Math.pow(1 + discountRate, i + 1);
+        npvLine.push(npvCum - computeMigrationCost());
+      });
+
+      savingsChart = new Chart(document.getElementById('savingsChart').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: yearLabels,
+          datasets: [
+            {
+              label: 'Cumulative Savings',
+              data: years.map(y => y.cumulativeSavings),
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              fill: true,
+              tension: 0.3
+            },
+            {
+              label: 'NPV-Adjusted',
+              data: npvLine,
+              borderColor: '#6366f1',
+              borderDash: [5, 5],
+              fill: false,
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12 } },
+            tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtDollar(ctx.raw) } },
+            annotation: undefined
+          },
+          scales: {
+            y: { ticks: { callback: val => fmtDollar(val) } }
+          }
+        }
+      });
+
+      // 3. VMware cost doughnut
+      vmwarePieChart = new Chart(document.getElementById('vmwarePieChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Licensing', 'Support', 'Labor', 'Power', 'Facilities', 'Hardware', 'Other'],
+          datasets: [{
+            data: [vmwareTCO.licensing, vmwareTCO.support, vmwareTCO.labor, vmwareTCO.power, vmwareTCO.facilities, vmwareTCO.hardware, vmwareTCO.other],
+            backgroundColor: ['#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6366f1', '#94a3b8', '#d1d5db']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12 } },
+            tooltip: { callbacks: { label: ctx => ctx.label + ': ' + fmtDollar(ctx.raw) + ' (' + ((ctx.raw / vmwareTCO.total) * 100).toFixed(1) + '%)' } }
+          }
+        }
+      });
+
+      // 4. Target cost doughnut
+      targetPieChart = new Chart(document.getElementById('targetPieChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Compute', 'Storage', 'Egress', 'Managed Svc', 'OS Licensing', 'Labor'],
+          datasets: [{
+            data: [targetCost.compute, targetCost.storage, targetCost.egress, targetCost.managed, targetCost.osLicensing, targetCost.labor],
+            backgroundColor: ['#8b5cf6', '#10b981', '#6366f1', '#ec4899', '#94a3b8', '#f59e0b']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12 } },
+            tooltip: { callbacks: { label: ctx => ctx.label + ': ' + fmtDollar(ctx.raw) + ' (' + ((ctx.raw / targetCost.total) * 100).toFixed(1) + '%)' } }
+          }
+        }
+      });
+
+      // 5. Year-over-year grouped bar
+      yoyChart = new Chart(document.getElementById('yoyChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: yearLabels,
+          datasets: [
+            {
+              label: 'VMware Annual Cost',
+              data: years.map(y => y.vmwareTotal),
+              backgroundColor: '#8b5cf6'
+            },
+            {
+              label: 'Target Annual Cost',
+              data: years.map(y => y.targetTotal),
+              backgroundColor: '#10b981'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12 } },
+            tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtDollar(ctx.raw) } }
+          },
+          scales: {
+            y: { ticks: { callback: val => fmtDollar(val) } }
+          }
+        }
+      });
+    }
+
+    // ── Sensitivity tornado chart ──
+    function updateSensitivityChart(vmwareTCO, targetCost, migrationCost, benefits) {
+      if (sensitivityChart) sensitivityChart.destroy();
+
+      const sensData = computeSensitivity(vmwareTCO, targetCost, migrationCost, benefits);
+
+      sensitivityChart = new Chart(document.getElementById('sensitivityChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: sensData.map(s => s.name),
+          datasets: [
+            {
+              label: '-20% Change',
+              data: sensData.map(s => s.low),
+              backgroundColor: '#ef4444'
+            },
+            {
+              label: '+20% Change',
+              data: sensData.map(s => s.high),
+              backgroundColor: '#10b981'
+            }
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12 } },
+            tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtDollar(ctx.raw) + ' impact' } }
+          },
+          scales: {
+            x: { ticks: { callback: val => fmtDollar(val) } }
+          }
+        }
+      });
+    }
+
+    // ── Projection table ──
+    function updateProjectionTable(years) {
+      const thead = document.getElementById('projectionHead');
+      const tbody = document.getElementById('projectionBody');
+
+      thead.innerHTML = `<tr>
+        <th>Year</th>
+        <th style="text-align:right">VMware Cost</th>
+        <th style="text-align:right">Target Cost</th>
+        <th style="text-align:right">Migration Cost</th>
+        <th style="text-align:right">Annual Savings</th>
+        <th style="text-align:right">Cumulative Savings</th>
+      </tr>`;
+
+      tbody.innerHTML = years.map(y => `<tr>
+        <td style="font-weight:600">Year ${y.year}</td>
+        <td style="text-align:right">${fmtDollar(y.vmwareTotal)}</td>
+        <td style="text-align:right">${fmtDollar(y.targetTotal)}</td>
+        <td style="text-align:right">${y.migrationCost > 0 ? fmtDollar(y.migrationCost) : '-'}</td>
+        <td style="text-align:right; color:${y.annualSavings >= 0 ? '#059669' : '#dc2626'}; font-weight:600">${fmtDollar(y.annualSavings)}</td>
+        <td style="text-align:right; color:${y.cumulativeSavings >= 0 ? '#059669' : '#dc2626'}; font-weight:700">${fmtDollar(y.cumulativeSavings)}</td>
+      </tr>`).join('');
+    }
+
+    // ── Recommendations engine ──
+    function updateRecommendations(roi, payback, npv, totalSavings, vmwareTCO, targetCost) {
+      const recs = [];
+      const pricingModel = document.getElementById('pricingModel').value;
+      const provider = document.getElementById('cloudProvider').value;
+      const vmwareEsc = v('vmwareEscalation');
+
+      // ROI strength
+      if (roi > 200) {
+        recs.push({ type: 'positive', text: `<strong>Strong ROI (${roi.toFixed(0)}%):</strong> This migration shows excellent financial returns. The investment pays for itself quickly and generates significant ongoing savings.` });
+      } else if (roi > 50) {
+        recs.push({ type: 'positive', text: `<strong>Positive ROI (${roi.toFixed(0)}%):</strong> The migration is financially justified with solid returns above the cost of capital.` });
+      } else if (roi > 0) {
+        recs.push({ type: 'neutral', text: `<strong>Marginal ROI (${roi.toFixed(0)}%):</strong> The financial case is modest. Consider increasing rightsizing savings or negotiating better pricing to strengthen the business case.` });
+      } else {
+        recs.push({ type: 'warning', text: `<strong>Negative ROI (${roi.toFixed(0)}%):</strong> At current assumptions, the migration doesn't pay for itself financially. Consider strategic benefits (agility, risk reduction) or revisit cost assumptions.` });
+      }
+
+      // Pricing model advice
+      if (pricingModel === 'ondemand' && provider !== 'ocp') {
+        recs.push({ type: 'neutral', text: `<strong>Pricing Optimization:</strong> You're using on-demand pricing. Switching to 1-year reserved instances typically saves 35-40%, and 3-year commitments save 55-60%. Consider reserved pricing for steady-state workloads.` });
+      } else if (pricingModel === 'ondemand' && provider === 'ocp') {
+        recs.push({ type: 'neutral', text: `<strong>Subscription Optimization:</strong> You're using standard subscription pricing. A premium subscription commitment (1-year or 3-year) provides lower per-core costs and includes enhanced support SLAs.` });
+      }
+
+      // OpenShift-specific advice
+      if (provider === 'ocp') {
+        recs.push({ type: 'positive', text: `<strong>OpenShift Virtualization:</strong> OpenShift Virtualization Engine is licensed per socket-pair (~$4,703/yr standard, ~$9,880/yr premium for 1-2 sockets up to 128 cores). This eliminates egress fees, leverages existing on-premises infrastructure, and provides a unified platform for VMs and containers. The Migration Toolkit for Virtualization (MTV) automates bulk VM migrations from VMware.` });
+        if (pricingModel === 'ondemand') {
+          recs.push({ type: 'neutral', text: `<strong>Support Tier:</strong> You're using Standard (8x5) support. Premium (24x7) support costs more but provides round-the-clock coverage for critical production workloads. A 3-year premium commitment offers the best per-year rate.` });
+        }
+      }
+
+      // Broadcom context
+      if (vmwareEsc >= 10) {
+        recs.push({ type: 'neutral', text: `<strong>Broadcom Licensing Impact:</strong> With VMware license escalation at ${vmwareEsc}%/year, VMware costs will ${vmwareEsc >= 15 ? 'more than double' : 'increase significantly'} over 5 years. This is consistent with post-acquisition pricing trends and strengthens the migration case.` });
+      }
+
+      // Payback
+      if (payback !== null && payback <= 18) {
+        recs.push({ type: 'positive', text: `<strong>Fast Payback (${payback} months):</strong> The migration investment is recovered within ${payback} months, well within typical enterprise budget cycles.` });
+      } else if (payback !== null && payback > 36) {
+        recs.push({ type: 'warning', text: `<strong>Extended Payback (${payback} months):</strong> The break-even timeline extends beyond 3 years. Consider phased migration to reduce upfront costs and accelerate returns.` });
+      }
+
+      // Licensing dominance
+      const licPct = (vmwareTCO.licensing / vmwareTCO.total) * 100;
+      if (licPct > 50) {
+        recs.push({ type: 'neutral', text: `<strong>Licensing-Heavy TCO:</strong> VMware licensing represents ${licPct.toFixed(0)}% of your current TCO. This heavy licensing exposure amplifies the impact of Broadcom price increases and makes migration increasingly attractive over time.` });
+      }
+
+      document.getElementById('recommendations').innerHTML = recs.map(r =>
+        `<div class="recommendation ${r.type}">${r.text}</div>`
+      ).join('');
+    }
+
+    // ── PDF Export ──
+    async function exportToPDF() {
+      const button = document.getElementById('pdfButton');
+      button.disabled = true;
+      button.textContent = 'Generating...';
+
+      try {
+        if (!window.html2canvas) {
+          const script1 = document.createElement('script');
+          script1.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+          document.head.appendChild(script1);
+          await new Promise(resolve => script1.onload = resolve);
+        }
+        if (!window.jspdf) {
+          const script2 = document.createElement('script');
+          script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+          document.head.appendChild(script2);
+          await new Promise(resolve => script2.onload = resolve);
+        }
+
+        // Show all tabs temporarily for full capture
+        const panels = document.querySelectorAll('.tab-panel');
+        panels.forEach(p => p.style.display = 'block');
+
+        const element = document.getElementById('reportContent');
+        const canvas = await html2canvas(element, {
+          scale: 1.5,
+          backgroundColor: '#f3f4f6',
+          windowHeight: element.scrollHeight
+        });
+
+        // Restore tab state
+        panels.forEach(p => p.style.display = '');
+        document.querySelectorAll('.tab-panel.active').forEach(p => p.style.display = 'block');
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const ratio = pdfWidth / (imgWidth * 25.4 / 96);
+        const scaledHeight = imgHeight * 25.4 / 96 * ratio;
+
+        let yOffset = 0;
+        let page = 0;
+        while (yOffset < scaledHeight) {
+          if (page > 0) pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', 0, -yOffset + 5, pdfWidth, scaledHeight);
+          yOffset += pdfHeight - 10;
+          page++;
+        }
+
+        pdf.save('VMware-Migration-ROI-Analysis.pdf');
+
+        button.textContent = 'Export to PDF';
+        button.disabled = false;
+      } catch (error) {
+        alert('PDF export failed: ' + error.message);
+        button.textContent = 'Export to PDF';
+        button.disabled = false;
+      }
+    }
+
+    // Initialize defaults on page load
+    updateCloudDefaults();
+  </script>
+</body>
+</html>
