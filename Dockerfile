@@ -9,7 +9,7 @@ RUN rm -rf /etc/nginx/conf.d/default.conf /usr/share/nginx/html/*
 
 # Copy the migration calculator HTML files
 COPY migration-calculator.html /usr/share/nginx/html/index.html
-COPY migration-calculator.html /usr/share/nginx/html/migration-calculator.html
+RUN cp /usr/share/nginx/html/index.html /usr/share/nginx/html/migration-calculator.html
 COPY roi-calculator.html /usr/share/nginx/html/roi-calculator.html
 
 # Create a custom nginx configuration for better performance and security on port 8080
