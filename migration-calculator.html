@@ -290,10 +290,19 @@
           <small>Quiesce, cutover, validation time, Red Hat Forklift overhead</small>
         </div>
         <div style="background: #f3f4f6; padding: 16px; border-radius: 6px; margin-top: 20px;">
-          <div style="font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">Transfer Technologies:</div>
-          <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;"><strong>Network Copy:</strong> 100 MB/s</div>
-          <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;"><strong>XCopy (Array):</strong> 500 MB/s</div>
-          <div style="font-size: 12px; color: #6b7280;"><strong>VolCopy (FlashArray):</strong> 2000 MB/s</div>
+          <div style="font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 12px;">Transfer Technology Speeds (MB/s):</div>
+          <div class="input-group">
+            <label>Network Copy (MB/s)</label>
+            <input type="number" id="speedNetworkCopy" value="100" min="1" onchange="calculate()" autocomplete="off">
+          </div>
+          <div class="input-group">
+            <label>XCopy (Array) (MB/s)</label>
+            <input type="number" id="speedXCopy" value="500" min="1" onchange="calculate()" autocomplete="off">
+          </div>
+          <div class="input-group" style="margin-bottom: 0;">
+            <label>VolCopy (FlashArray) (MB/s)</label>
+            <input type="number" id="speedVolCopy" value="2000" min="1" onchange="calculate()" autocomplete="off">
+          </div>
         </div>
       </div>
     </div>
@@ -364,8 +373,15 @@
 
       const effectiveHoursPerWindow = Math.max(0, windowHours - overheadHours);
 
-      const results = technologies.map(tech => {
-        const transferTimeMinutes = (avgDataPerVM * 1024) / (tech.speedMBps * 60);
+      const customSpeeds = [
+        Number(document.getElementById('speedNetworkCopy').value) || technologies[0].speedMBps,
+        Number(document.getElementById('speedXCopy').value) || technologies[1].speedMBps,
+        Number(document.getElementById('speedVolCopy').value) || technologies[2].speedMBps,
+      ];
+
+      const results = technologies.map((tech, i) => {
+        const speedMBps = customSpeeds[i];
+        const transferTimeMinutes = (avgDataPerVM * 1024) / (speedMBps * 60);
         const totalTimePerVM = transferTimeMinutes + perVMOverhead;
         const vmsPerHourPerStream = 60 / totalTimePerVM;
         
@@ -378,7 +394,7 @@
         return {
           name: tech.name,
           description: tech.description,
-          speedMBps: tech.speedMBps,
+          speedMBps: speedMBps,
           color: tech.color,
           totalTimePerVM: Math.round(totalTimePerVM * 10) / 10,
           vmsPerHourPerStream: Math.round(vmsPerHourPerStream * 100) / 100,
